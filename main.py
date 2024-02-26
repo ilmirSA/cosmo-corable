@@ -8,7 +8,7 @@ import os
 from pprint import pprint
 from physics import update_speed
 from curses_tools import draw_frame
-
+print("d")
 
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
