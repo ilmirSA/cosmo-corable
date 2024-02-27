@@ -1,5 +1,5 @@
 import asyncio
-from obstacles import Obstacle
+from obstacles import Obstacle,show_obstacles
 import curses
 import random
 import time
@@ -8,7 +8,7 @@ import os
 from pprint import pprint
 from physics import update_speed
 from curses_tools import draw_frame
-print("d")
+
 
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
@@ -17,7 +17,7 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 
 corutines = []
-obstacles=[]
+OBSTACLES=[]
 
 def read_controls(canvas):
   """Read keys pressed and returns tuple witl controls state."""
@@ -175,21 +175,23 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     rows_number, columns_number = canvas.getmaxyx()
 
     column = max(column, 0)
+    
     column = min(column, columns_number - 1)
 
     row = 0
-
+    
+    garbage_rows,garbage_colums=get_frame_size(garbage_frame)
+    obstacle=Obstacle( row, column,garbage_rows,garbage_colums)
+    OBSTACLES.append(obstacle)
     while row < rows_number:
+        obstacle.row=row
+        obstacle.column=column
         draw_frame(canvas, row, column, garbage_frame)
-        
-        obstacle=Obstacle(row, column),  # первое препятствие
-        obstacles.append(obstacle)
-
-        print("one",row,column)
         await asyncio.sleep(0)
         draw_frame(canvas, row, column, garbage_frame, negative=True)
-        print(obstacles)
         row += speed
+        
+        
 
 
 async def fill_orbit_with_garbage (canvas,max_x):
@@ -248,7 +250,8 @@ def draw(canvas):
   corable = animate_spaceship(canvas, 18, 77, frame1, frame2)
 
   add_garbage=fill_orbit_with_garbage(canvas,max_x)
-
+  show=show_obstacles(canvas,OBSTACLES)
+  corutines.append(show)
   corutines.append(add_garbage)
   corutines.append(corable)
 
