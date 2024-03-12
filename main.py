@@ -70,19 +70,20 @@ async def sleep(tics=1):
 async def fire(canvas,
                start_row,
                start_column,
+               obstacles,
                rows_speed=-0.2,
-               columns_speed=0):
+               columns_speed=0,
+               ):
   """Display animation of gun shot, direction and speed can be specified."""
 
   row, column = start_row, start_column
-
+ 
   canvas.addstr(round(row), round(column), '*')
   await asyncio.sleep(0)
 
   canvas.addstr(round(row), round(column), 'O')
   await asyncio.sleep(0)
   canvas.addstr(round(row), round(column), ' ')
-
   row += rows_speed
   column += columns_speed
 
@@ -90,16 +91,22 @@ async def fire(canvas,
 
   rows, columns = canvas.getmaxyx()
   max_row, max_column = rows - 1, columns - 1
-
+          
   curses.beep()
 
   while 0 < row < max_row and 0 < column < max_column:
-    canvas.addstr(round(row), round(column), symbol)
-    await asyncio.sleep(0)
-    canvas.addstr(round(row), round(column), ' ')
-    row += rows_speed
-    column += columns_speed
-
+          canvas.addstr(round(row), round(column), symbol)
+          await asyncio.sleep(0)
+          canvas.addstr(round(row), round(column), ' ')
+          row += rows_speed
+          column += columns_speed
+          for obstacle in obstacles:
+            result=obstacle.has_collision(row,column)
+            if not result:
+             continue
+            else:
+              return
+          
 
 
 
@@ -131,7 +138,7 @@ async def animate_spaceship(canvas, row, column, cadr, cadr2):
     column = min(column + columns_direction+column_speed, window_width)
     
     if space_pressed:
-      shot=fire(canvas,row,column,rows_speed=-0.99)
+      shot=fire(canvas,row,column,OBSTACLES,rows_speed=-0.99,)
       corutines.append(shot)    
 
 
@@ -250,8 +257,8 @@ def draw(canvas):
   corable = animate_spaceship(canvas, 18, 77, frame1, frame2)
 
   add_garbage=fill_orbit_with_garbage(canvas,max_x)
-  show=show_obstacles(canvas,OBSTACLES)
-  corutines.append(show)
+  # show=show_obstacles(canvas,OBSTACLES)
+  # corutines.append(show)
   corutines.append(add_garbage)
   corutines.append(corable)
 
