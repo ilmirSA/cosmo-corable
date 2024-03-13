@@ -7,8 +7,9 @@ from itertools import cycle
 import os
 from pprint import pprint
 from physics import update_speed
-from curses_tools import draw_frame
-import uuid
+from curses_tools import draw_frame,get_frame_size
+from explosion import explode
+ 
 
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
@@ -53,14 +54,6 @@ def read_controls(canvas):
 
 
 
-
-def get_frame_size(text):
-  """Calculate size of multiline text fragment, return pair — number of rows and colums."""
-  
-  lines = text.splitlines()
-  rows = len(lines)
-  columns = max([len(line) for line in lines])
-  return rows, columns
 
 
 async def sleep(tics=1):
@@ -194,6 +187,7 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     OBSTACLES.append(obstacle)
     while row < rows_number:
         if obstacle in obstacles_in_last_collisions:
+          await explode(canvas, obstacle.row, obstacle.column)
           return
         else:
           obstacle.row=row
