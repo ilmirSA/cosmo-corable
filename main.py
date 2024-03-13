@@ -104,7 +104,13 @@ async def fire(canvas,
               return
           
 
-
+async def show_gameover(canvas,row,column,item):
+  draw_frame(canvas, row, column, item, negative=True)
+  with open('gameover.txt', ) as f:
+    frame1 = f.read()
+  while True:
+    draw_frame(canvas,20, 50, frame1)
+    await sleep(1)
 
 async def animate_spaceship(canvas, row, column, cadr, cadr2):
 
@@ -132,6 +138,15 @@ async def animate_spaceship(canvas, row, column, cadr, cadr2):
 
     row = min(row + rows_direction + row_speed, window_height)
     column = min(column + columns_direction+column_speed, window_width)
+
+
+    for obstacle in OBSTACLES:
+      result=obstacle.has_collision(row,column)
+      if not result:
+        continue
+      else:
+        await show_gameover(canvas,row,column,item)
+
     
     if space_pressed:
       shot=fire(canvas,row,column,rows_speed=-0.99,)
