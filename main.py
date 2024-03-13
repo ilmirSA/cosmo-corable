@@ -70,7 +70,7 @@ async def sleep(tics=1):
 async def fire(canvas,
                start_row,
                start_column,
-               obstacles,
+
                rows_speed=-0.2,
                columns_speed=0,
                ):
@@ -100,7 +100,7 @@ async def fire(canvas,
           canvas.addstr(round(row), round(column), ' ')
           row += rows_speed
           column += columns_speed
-          for obstacle in obstacles:
+          for obstacle in OBSTACLES:
             result=obstacle.has_collision(row,column)
             if not result:
              continue
@@ -138,7 +138,7 @@ async def animate_spaceship(canvas, row, column, cadr, cadr2):
     column = min(column + columns_direction+column_speed, window_width)
     
     if space_pressed:
-      shot=fire(canvas,row,column,OBSTACLES,rows_speed=-0.99,)
+      shot=fire(canvas,row,column,rows_speed=-0.99,)
       corutines.append(shot)    
 
 
