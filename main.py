@@ -8,7 +8,7 @@ import os
 from pprint import pprint
 from physics import update_speed
 from curses_tools import draw_frame
-
+import uuid
 
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
@@ -18,6 +18,7 @@ DOWN_KEY_CODE = 258
 
 corutines = []
 OBSTACLES=[]
+obstacles_in_last_collisions=[]
 
 def read_controls(canvas):
   """Read keys pressed and returns tuple witl controls state."""
@@ -101,10 +102,12 @@ async def fire(canvas,
           row += rows_speed
           column += columns_speed
           for obstacle in OBSTACLES:
+            
             result=obstacle.has_collision(row,column)
             if not result:
              continue
             else:
+              obstacles_in_last_collisions.append(obstacle)
               return
           
 
@@ -186,17 +189,19 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     column = min(column, columns_number - 1)
 
     row = 0
-    
     garbage_rows,garbage_colums=get_frame_size(garbage_frame)
     obstacle=Obstacle( row, column,garbage_rows,garbage_colums)
     OBSTACLES.append(obstacle)
     while row < rows_number:
-        obstacle.row=row
-        obstacle.column=column
-        draw_frame(canvas, row, column, garbage_frame)
-        await asyncio.sleep(0)
-        draw_frame(canvas, row, column, garbage_frame, negative=True)
-        row += speed
+        if obstacle in obstacles_in_last_collisions:
+          return
+        else:
+          obstacle.row=row
+          obstacle.column=column
+          draw_frame(canvas, row, column, garbage_frame)
+          await asyncio.sleep(0)
+          draw_frame(canvas, row, column, garbage_frame, negative=True)
+          row += speed
         
         
 
@@ -257,9 +262,11 @@ def draw(canvas):
   corable = animate_spaceship(canvas, 18, 77, frame1, frame2)
 
   add_garbage=fill_orbit_with_garbage(canvas,max_x)
-  # show=show_obstacles(canvas,OBSTACLES)
+ 
+  show=show_obstacles(canvas,OBSTACLES)
   # corutines.append(show)
   corutines.append(add_garbage)
+ 
   corutines.append(corable)
 
   while True:
