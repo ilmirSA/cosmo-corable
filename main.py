@@ -224,7 +224,6 @@ async def fill_orbit_with_garbage (canvas,max_x):
     amount_garbage=get_garbage_delay_tics(year)
     if amount_garbage:
       for amount in range(0,amount_garbage):
-        print(amount)
         garbage=random.choice(garbages)
         with open(f'{garbage_path}{garbage}', "r") as garbage_file:
           frame = garbage_file.read()
