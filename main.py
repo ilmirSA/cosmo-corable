@@ -9,13 +9,14 @@ from pprint import pprint
 from physics import update_speed
 from curses_tools import draw_frame,get_frame_size
 from explosion import explode
- 
+from game_scenario import get_garbage_delay_tics
 
 SPACE_KEY_CODE = 32
 LEFT_KEY_CODE = 260
 RIGHT_KEY_CODE = 261
 UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
+year=1957
 
 corutines = []
 OBSTACLES=[]
@@ -149,10 +150,11 @@ async def animate_spaceship(canvas, row, column, cadr, cadr2):
 
     
     if space_pressed:
-      shot=fire(canvas,row,column,rows_speed=-0.99,)
-      corutines.append(shot)    
+      if year > 2020:
+        shot=fire(canvas,row,column,rows_speed=-0.99,)
+        corutines.append(shot)    
 
-
+   
     if row < 1:
       row = 1
     if row > window_height:
@@ -219,14 +221,31 @@ async def fill_orbit_with_garbage (canvas,max_x):
   garbage_path='./garbage/'
   garbages=os.listdir(garbage_path)
   while True:
-    garbage=random.choice(garbages)
-    with open(f'{garbage_path}{garbage}', "r") as garbage_file:
-      frame = garbage_file.read()
-    random_column=random.randint(0,max_x)
-    coroutine = fly_garbage(canvas, column=random_column, garbage_frame=frame)
-    corutines.append(coroutine)
-    await sleep(random.randint(5,10))
+    amount_garbage=get_garbage_delay_tics(year)
+    if amount_garbage:
+      for amount in range(0,amount_garbage):
+        print(amount)
+        garbage=random.choice(garbages)
+        with open(f'{garbage_path}{garbage}', "r") as garbage_file:
+          frame = garbage_file.read()
+        random_column=random.randint(0,max_x)
+        coroutine = fly_garbage(canvas, column=random_column, garbage_frame=frame)
+        corutines.append(coroutine)
+       
+        await sleep(random.randint(5,10))
+    
+    await sleep(1)
   
+async def year_tik(canvas):
+  max_y, max_x = canvas.getmaxyx()
+  while True:
+    
+    t=canvas.derwin(0,0,max_y-2,max_x-100)
+    global year
+    t.addstr(1, 1, f"Year:{year}")
+    year+=1
+    canvas.refresh()
+    await sleep(2)
 
 
 
@@ -272,10 +291,10 @@ def draw(canvas):
 
   add_garbage=fill_orbit_with_garbage(canvas,max_x)
  
-  show=show_obstacles(canvas,OBSTACLES)
-  # corutines.append(show)
-  corutines.append(add_garbage)
  
+  show_year=year_tik(canvas)
+  corutines.append(add_garbage)
+  corutines.append(show_year)
   corutines.append(corable)
 
   while True:
