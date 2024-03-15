@@ -18,9 +18,9 @@ UP_KEY_CODE = 259
 DOWN_KEY_CODE = 258
 year = 1957
 
-CORUTINES = []
-OBSTACLES = []
-OBSTACLES_IN_LAST_COLLISIONS = []
+corutines = []
+obstacles = []
+obstacles_in_last_collisions = []
 
 def read_controls(canvas):
     """Read keys pressed and returns tuple witl controls state."""
@@ -91,13 +91,13 @@ async def fire(
         canvas.addstr(round(row), round(column), " ")
         row += rows_speed
         column += columns_speed
-        for obstacle in OBSTACLES:
+        for obstacle in obstacles:
 
             result = obstacle.has_collision(row, column)
             if not result:
                 continue
             else:
-                OBSTACLES_IN_LAST_COLLISIONS.append(obstacle)
+                obstacles_in_last_collisions.append(obstacle)
                 return
 
 
@@ -144,7 +144,7 @@ async def animate_spaceship(canvas, row, column, cadr, cadr2):
         row = min(row + rows_direction + row_speed, window_height)
         column = min(column + columns_direction + column_speed, window_width)
 
-        for obstacle in OBSTACLES:
+        for obstacle in obstacles:
             result = obstacle.has_collision(row, column)
             if not result:
                 continue
@@ -152,14 +152,14 @@ async def animate_spaceship(canvas, row, column, cadr, cadr2):
                 await show_gameover(canvas, row, column, item)
 
         if space_pressed:
-            if year > 2020:
+            if year > 0:
                 shot = fire(
                     canvas,
                     row,
                     column,
                     rows_speed=-0.99,
                 )
-                CORUTINES.append(shot)
+                corutines.append(shot)
 
         if row < 1:
             row = 1
@@ -206,10 +206,13 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     row = 0
     garbage_rows, garbage_colums = get_frame_size(garbage_frame)
     obstacle = Obstacle(row, column, garbage_rows, garbage_colums)
-    OBSTACLES.append(obstacle)
+    obstacles.append(obstacle)
     while row < rows_number:
-        if obstacle in OBSTACLES_IN_LAST_COLLISIONS:
+        if obstacle in obstacles_in_last_collisions:
+            obstacles.remove(obstacle)
+            obstacles_in_last_collisions.remove(obstacles)
             await explode(canvas, obstacle.row, obstacle.column)
+            
             return
         else:
             obstacle.row = row
@@ -234,7 +237,7 @@ async def fill_orbit_with_garbage(canvas, max_x):
                 coroutine = fly_garbage(
                     canvas, column=random_column, garbage_frame=frame
                 )
-                CORUTINES.append(coroutine)
+                corutines.append(coroutine)
 
                 await sleep(random.randint(5, 10))
 
@@ -294,26 +297,29 @@ def draw(canvas):
             random.choice(symbols),
             offset_tics,
         )
-        CORUTINES.append(star)
+        corutines.append(star)
 
     corable = animate_spaceship(canvas, 18, 77, frame1, frame2)
 
     add_garbage = fill_orbit_with_garbage(canvas, max_x)
 
     show_year = year_tik(canvas)
-    CORUTINES.append(add_garbage)
-    CORUTINES.append(show_year)
-    CORUTINES.append(corable)
+    show=show_obstacles(canvas,obstacles)
+    
+    corutines.append(add_garbage)
+    corutines.append(show)
+    corutines.append(show_year)
+    corutines.append(corable)
 
     while True:
-        for corutine in CORUTINES.copy():
+        for corutine in corutines.copy():
             try:
                 corutine.send(None)
 
             except StopIteration:
-                CORUTINES.remove(corutine)
+                corutines.remove(corutine)
 
-        if len(CORUTINES) == 0:
+        if len(corutines) == 0:
             break
         canvas.refresh()
         time.sleep(1)
