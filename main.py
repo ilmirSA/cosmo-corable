@@ -22,6 +22,7 @@ corutines = []
 obstacles = []
 obstacles_in_last_collisions = []
 
+
 def read_controls(canvas):
     """Read keys pressed and returns tuple witl controls state."""
 
@@ -59,11 +60,11 @@ async def sleep(tics=1):
 
 
 async def fire(
-    canvas,
-    start_row,
-    start_column,
-    rows_speed=-0.2,
-    columns_speed=0,
+        canvas,
+        start_row,
+        start_column,
+        rows_speed=-0.2,
+        columns_speed=0,
 ):
     """Display animation of gun shot, direction and speed can be specified."""
 
@@ -104,7 +105,7 @@ async def fire(
 async def show_gameover(canvas, row, column, item):
     draw_frame(canvas, row, column, item, negative=True)
     with open(
-        "gameover.txt",
+            "gameover.txt",
     ) as f:
         frame1 = f.read()
     while True:
@@ -113,7 +114,6 @@ async def show_gameover(canvas, row, column, item):
 
 
 async def animate_spaceship(canvas, row, column, cadr, cadr2):
-
     frame1 = f"""{cadr}"""
 
     frame2 = f"""{cadr2}"""
@@ -195,7 +195,7 @@ async def blink(canvas, row, column, symbol, offset_tics):
         await sleep(offset_tics)
 
 
-async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+async def fly_garbage(canvas, column, garbage_frame, speed=1):
     """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
     rows_number, columns_number = canvas.getmaxyx()
 
@@ -207,21 +207,22 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     garbage_rows, garbage_colums = get_frame_size(garbage_frame)
     obstacle = Obstacle(row, column, garbage_rows, garbage_colums)
     obstacles.append(obstacle)
-    while row < rows_number:
-        if obstacle in obstacles_in_last_collisions:
-            obstacles_in_last_collisions.remove(obstacle)
-            obstacles.remove(obstacle)
-            await explode(canvas, obstacle.row, obstacle.column)
-            
-            return
-        else:
-            obstacle.row = row
-            obstacle.column = column
-            draw_frame(canvas, row, column, garbage_frame)
-            await asyncio.sleep(0)
-            draw_frame(canvas, row, column, garbage_frame, negative=True)
-            row += speed
+    try:
+        while row < rows_number:
 
+            if obstacle in obstacles_in_last_collisions:
+                obstacles_in_last_collisions.remove(obstacle)
+                await explode(canvas, obstacle.row, obstacle.column)
+                return
+            else:
+                obstacle.row = row
+                obstacle.column = column
+                draw_frame(canvas, row, column, garbage_frame)
+                await asyncio.sleep(0)
+                draw_frame(canvas, row, column, garbage_frame, negative=True)
+                row += speed
+    finally:
+        obstacles.remove(obstacle)
 
 async def fill_orbit_with_garbage(canvas, max_x):
     garbage_path = "./garbage/"
@@ -247,7 +248,6 @@ async def fill_orbit_with_garbage(canvas, max_x):
 async def year_tik(canvas):
     max_y, max_x = canvas.getmaxyx()
     while True:
-
         t = canvas.derwin(0, 0, max_y - 2, max_x - 100)
         global year
         t.addstr(1, 1, f"Year:{year}")
@@ -264,12 +264,12 @@ def draw(canvas):
     max_y, max_x = canvas.getmaxyx()
 
     with open(
-        "rocket_frame_1.txt",
+            "rocket_frame_1.txt",
     ) as f:
         frame1 = f.read()
 
     with open(
-        "rocket_frame_2.txt",
+            "rocket_frame_2.txt",
     ) as f:
         frame2 = f.read()
 
@@ -304,10 +304,8 @@ def draw(canvas):
     add_garbage = fill_orbit_with_garbage(canvas, max_x)
 
     show_year = year_tik(canvas)
-    show=show_obstacles(canvas,obstacles)
-    
+
     corutines.append(add_garbage)
-    corutines.append(show)
     corutines.append(show_year)
     corutines.append(corable)
 
